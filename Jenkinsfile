@@ -1,28 +1,39 @@
+@Library("Shared") _
 pipeline {
     agent any
     stages{
-        stage("Clone Code"){
+        stage("Hello"){
             steps{
-                git url: "https://github.com/LondheShubham153/django-notes-app.git", branch: "main"
+                script{
+                    hello()
+                }
             }
         }
-        stage("Build and Test"){
+        stage("Code"){
             steps{
-                sh "docker build . -t note-app-test-new"
+                script{
+                    clone("https://github.com/Aditya-das-4707-e/django-notes-app-docker.git", "dev")
+                }
             }
         }
-        stage("Push to Docker Hub"){
+        stage("Build"){
             steps{
-                withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                sh "docker tag note-app-test-new ${env.dockerHubUser}/note-app-test-new:latest"
-                sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                sh "docker push ${env.dockerHubUser}/note-app-test-new:latest"
+                script{
+                    docker_build("notes-app-demo","latest","aditya81888")
+                }
+            }
+        }
+        stage("Push to DockerHub"){
+            steps{
+                script{
+                    docker_push("notes-app-demo","latest","aditya81888")
                 }
             }
         }
         stage("Deploy"){
             steps{
-                sh "docker-compose down && docker-compose up -d"
+                echo "this is deploying the code"
+                sh "docker compose up -d"
             }
         }
     }
